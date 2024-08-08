@@ -2,6 +2,7 @@
 
 #include <QTextEdit>
 #include <QMenuBar>
+#include <QToolBar>
 
 QtEditor::QtEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -41,6 +42,43 @@ QtEditor::QtEditor(QWidget *parent)
     QMenu *windowMenu = mb->addMenu("&Window");
 
     QMenu *helpMenu = mb->addMenu("&Help");
+
+
+    /////////////////////////////////////
+    /// \brief ToolBar
+
+    QToolBar *fileToolBar = addToolBar("&File");
+    fileToolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    fileToolBar->addAction(newAct);
+    fileToolBar->addSeparator();
+    fileToolBar->addAction(openAct);
+    fileToolBar->addSeparator();
+    fileToolBar->addAction(saveAct);
+    fileToolBar->addSeparator();
+    fileToolBar->addAction(saveasAct);
+    fileToolBar->addSeparator();
+    fileToolBar->addAction(printAct);
+    fileToolBar->addSeparator();
+    fileToolBar->addAction(exitAct);
+
+    QToolBar *editTB = addToolBar("&Edit");
+    editTB->setToolButtonStyle(Qt::ToolButtonIconOnly);
+
+    QToolBar *formatTB = addToolBar("&Format");
+    formatTB->setToolButtonStyle(Qt::ToolButtonIconOnly);
+
+    QToolBar *windowTB = addToolBar("&Window");
+    windowTB->setToolButtonStyle(Qt::ToolButtonIconOnly);
+
+    //toolbar toggle을 위한 메뉴
+    QMenu *toolbarMenu = windowMenu->addMenu("&Toolbar");
+    toolbarMenu->addAction(fileToolBar->toggleViewAction());
+    toolbarMenu->addAction(editTB->toggleViewAction());
+    toolbarMenu->addAction(formatTB->toggleViewAction());
+    toolbarMenu->addAction(windowTB->toggleViewAction());
+
+
+    // editTB->addAction(/**/);
 
 }
 
