@@ -13,6 +13,7 @@ public:
 
 public slots:
     void newFile();
+    void openFile();
 
 private:
     template <typename T>
