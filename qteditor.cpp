@@ -7,13 +7,33 @@
 #include <QDoubleSpinBox>
 #include <QStatusBar>
 #include <QLabel>
+#include <QDockWidget>
+#include <QMdiArea>
+#include <QMdiSubWindow>
 
 QtEditor::QtEditor(QWidget *parent)
     : QMainWindow(parent)
 {
-    te = new QTextEdit(this);
-    setCentralWidget(te);
+    //MDI Area
+    mdiArea = new QMdiArea(this);
+    setCentralWidget(mdiArea);
 
+    // Text Edit - on MDI Area
+    QTextEdit *te = newFile();
+
+    //Dock Widget
+    QWidget *w = new QWidget(this);
+    QLabel *label = new QLabel("Dock Widget", w);
+    QDockWidget *dock = new QDockWidget("Dock Widget", this);
+    dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    addDockWidget(Qt::RightDockWidgetArea, dock);
+    dock->setWidget(w);
+
+    // Text Edit - Central Widget
+    // te = new QTextEdit(this);
+    // setCentralWidget(te);
+
+    // MenuBar
     QMenuBar *mb = new QMenuBar(this);
     setMenuBar(mb);
 
@@ -25,12 +45,12 @@ QtEditor::QtEditor(QWidget *parent)
     //tr -> 번역을 위한 예약어
 
 //file menu
-    QAction *newAct = makeAction("new.png", tr("&New"), tr("Ctrl+N"), tr("make new file"), this, SLOT(newFile()));
-    QAction *openAct = makeAction("open.png", "&Open", tr("Ctrl+O"), "open file", this, SLOT(openFile()));
-    QAction *saveAct = makeAction("save.png", "&Save", tr("Ctrl+S"), "save file", this, SLOT(saveFile()));
-    QAction *saveasAct = makeAction("saveas.png", "Save &As...", "", "save file as another file name", this, SLOT(saveasFile()));
-    QAction *printAct = makeAction("print.png", "&Print", "Ctrl+P", "print file", this, SLOT(printFile()));
-    QAction *exitAct = makeAction("quit.png", "E&xit", tr("Ctrl+Q"), "exit program", this, SLOT(exit()));
+    QAction *newAct = makeAction("new.png", tr("&New"), tr("Ctrl+N"), tr("Make New File"), this, SLOT(newFile()));
+    QAction *openAct = makeAction("open.png", "&Open", tr("Ctrl+O"), "Open File", this, SLOT(openFile()));
+    QAction *saveAct = makeAction("save.png", "&Save", tr("Ctrl+S"), "Save File", this, SLOT(saveFile()));
+    QAction *saveasAct = makeAction("saveas.png", "Save &As...", "", "Save File As Another File Name", this, SLOT(saveasFile()));
+    QAction *printAct = makeAction("print.png", "&Print", "Ctrl+P", "Print File", this, SLOT(printFile()));
+    QAction *exitAct = makeAction("quit.png", "E&xit", tr("Ctrl+Q"), "Exit Program", this, SLOT(exit()));
 
     QMenu *fileMenu = mb->addMenu("&File");
     fileMenu->addAction(newAct);
@@ -163,6 +183,7 @@ QtEditor::QtEditor(QWidget *parent)
     toolbarMenu->addAction(editTB->toggleViewAction());
     toolbarMenu->addAction(formatTB->toggleViewAction());
     toolbarMenu->addAction(windowTB->toggleViewAction());
+    toolbarMenu->addAction(dock->toggleViewAction());
 
 
 // QStatusBar
@@ -174,8 +195,13 @@ QtEditor::QtEditor(QWidget *parent)
 
 }
 
-void QtEditor::newFile() {
+QTextEdit* QtEditor::newFile() {
     qDebug("Make New File");
+    QTextEdit *textedit = new QTextEdit;
+    mdiArea->addSubWindow(textedit);
+    textedit->show();
+
+    return textedit;
 }
 
 void QtEditor::openFile() {
@@ -183,6 +209,11 @@ void QtEditor::openFile() {
 }
 
 void QtEditor::alignText() {
+    // 변경할 text edit 받아오기
+    QMdiSubWindow *subWindow = mdiArea->currentSubWindow();
+    QTextEdit *te = dynamic_cast<QTextEdit*>(subWindow->widget());
+
+    // 호출한 action 받아오기
     QAction *action = qobject_cast<QAction*>(sender());
 
     if (action->text().contains("Left", Qt::CaseInsensitive))
@@ -201,7 +232,7 @@ template <typename T>
 QAction *QtEditor::makeAction(QString icon, QString text, T shortCut, QString toolTip, QObject* recv, const char* slot) {
     QAction *act = new QAction(text, this);
     if (icon.length())
-        act->setIcon(QIcon("icons/" + icon));
+        act->setIcon(QIcon(":/icons/" + icon));
     act->setShortcut(QString(shortCut));
     act->setStatusTip(toolTip);
     connect(act, SIGNAL(triggered()), recv, slot);
@@ -212,7 +243,7 @@ template <typename T, typename Functor>
 QAction *QtEditor::makeAction(QString icon, QString text, T shortCut, QString toolTip, Functor lambda) {
     QAction *act = new QAction(text, this);
     if (icon.length())
-        act->setIcon(QIcon("icons/" + icon));
+        act->setIcon(QIcon(":/icons/" + icon));
     QKeySequence keySeq(shortCut);
     act->setShortcut(keySeq);
     act->setStatusTip(toolTip);

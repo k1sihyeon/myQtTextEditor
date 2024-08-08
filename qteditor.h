@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 class QTextEdit;
+class QMdiArea;
 
 class QtEditor : public QMainWindow
 {
@@ -13,12 +14,13 @@ public:
     QtEditor(QWidget *parent = nullptr);
     ~QtEditor();
 
-    QTextEdit *te;
+    //QTextEdit *te;
+    QMdiArea *mdiArea;
 
 public slots:
-    void newFile();
     void openFile();
     void alignText();
+    QTextEdit *newFile();
 
 private:
     template <typename T>
