@@ -46,11 +46,11 @@ QtEditor::QtEditor(QWidget *parent)
 
 //file menu
     QAction *newAct = makeAction("new.png", tr("&New"), tr("Ctrl+N"), tr("Make New File"), this, SLOT(newFile()));
-    QAction *openAct = makeAction("open.png", "&Open", tr("Ctrl+O"), "Open File", this, SLOT(openFile()));
-    QAction *saveAct = makeAction("save.png", "&Save", tr("Ctrl+S"), "Save File", this, SLOT(saveFile()));
-    QAction *saveasAct = makeAction("saveas.png", "Save &As...", "", "Save File As Another File Name", this, SLOT(saveasFile()));
-    QAction *printAct = makeAction("print.png", "&Print", "Ctrl+P", "Print File", this, SLOT(printFile()));
-    QAction *exitAct = makeAction("quit.png", "E&xit", tr("Ctrl+Q"), "Exit Program", this, SLOT(exit()));
+    QAction *openAct = makeAction("open.png", tr("&Open"), tr("Ctrl+O"), tr("Open File"), this, SLOT(openFile()));
+    QAction *saveAct = makeAction("save.png", tr("&Save"), tr("Ctrl+S"), tr("Save File"), this, SLOT(saveFile()));
+    QAction *saveasAct = makeAction("saveas.png", tr("Save &As..."), "", tr("Save File As Another File Name"), this, SLOT(saveasFile()));
+    QAction *printAct = makeAction("print.png", tr("&Print"), "Ctrl+P", tr("Print File"), this, SLOT(printFile()));
+    QAction *exitAct = makeAction("quit.png", tr("E&xit"), tr("Ctrl+Q"), tr("Exit Program"), this, SLOT(exit()));
 
     QMenu *fileMenu = mb->addMenu("&File");
     fileMenu->addAction(newAct);
@@ -66,16 +66,17 @@ QtEditor::QtEditor(QWidget *parent)
 
 //edit menu
     QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), te, SLOT(undo()));
-    QAction *redoAct = makeAction("redo.png", "&Redo", "Ctrl+Shift+Z", "Redo work", te, SLOT(redo()));
-    QAction *copyAct = makeAction("copy.png", "&Copy", "Ctrl+C", "Copy text", te, SLOT(copy()));
-    QAction *cutAct = makeAction("cut.png", "&Cut", "Ctrl+X", "Cut text", te, SLOT(cut()));
-    QAction *pasteAct = makeAction("paste.png", "&Paste", "Ctrl+V", "Paste work", te, SLOT(paste()));
-    QAction *zoominAct = makeAction("zoom_in.png", "Zoom &In", "Ctrl++", "Zoom In Screen", te, SLOT(zoomIn()));
-    QAction *zoomoutAct = makeAction("zoom_out.png", "Zoom &Out", "Ctrl+-", "Zoom Out Screen", te, SLOT(zoomOut()));
+    QAction *redoAct = makeAction("redo.png", tr("&Redo"), "Ctrl+Shift+Z", tr("Redo work"), te, SLOT(redo()));
+    QAction *copyAct = makeAction("copy.png", tr("&Copy"), "Ctrl+C", tr("Copy text"), te, SLOT(copy()));
+    QAction *cutAct = makeAction("cut.png", tr("&Cut"), "Ctrl+X", tr("Cut text"), te, SLOT(cut()));
+    QAction *pasteAct = makeAction("paste.png", tr("&Paste"), "Ctrl+V", tr("Paste work"), te, SLOT(paste()));
+    QAction *zoominAct = makeAction("zoom_in.png", tr("Zoom &In"), "Ctrl++", tr("Zoom In Screen"), te, SLOT(zoomIn()));
+    QAction *zoomoutAct = makeAction("zoom_out.png", tr("Zoom &Out"), "Ctrl+-", tr("Zoom Out Screen"), te, SLOT(zoomOut()));
 
     QMenu *editMenu = mb->addMenu("&Edit");
     editMenu->addAction(undoAct);
     editMenu->addAction(redoAct);
+
     editMenu->addSeparator();
     editMenu->addAction(copyAct);
     editMenu->addAction(cutAct);
@@ -96,6 +97,7 @@ QtEditor::QtEditor(QWidget *parent)
 
     //add Align Sub Menu
     QMenu *alignMenu = formatMenu->addMenu("&Align");
+    alignMenu->setIcon(QIcon(":/icons/align.png"));
 
     // QAction *alignLeftAct = makeAction("align_left.png", "&Left", "Ctrl+L", "Align Left", [=] {
     //     te->setAlignment(Qt::AlignLeft);
@@ -179,6 +181,7 @@ QtEditor::QtEditor(QWidget *parent)
 
 //toolbar toggle을 위한 메뉴
     QMenu *toolbarMenu = windowMenu->addMenu("&Toolbar");
+    toolbarMenu->setIcon(QIcon(":/icons/toolbar.png"));
     toolbarMenu->addAction(fileToolBar->toggleViewAction());
     toolbarMenu->addAction(editTB->toggleViewAction());
     toolbarMenu->addAction(formatTB->toggleViewAction());
@@ -250,6 +253,5 @@ QAction *QtEditor::makeAction(QString icon, QString text, T shortCut, QString to
     connect(act, &QAction::triggered, this, lambda);
     return act;
 }
-
 
 QtEditor::~QtEditor() {}
