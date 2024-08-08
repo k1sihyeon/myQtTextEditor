@@ -11,7 +11,7 @@
 QtEditor::QtEditor(QWidget *parent)
     : QMainWindow(parent)
 {
-    QTextEdit *te = new QTextEdit(this);
+    te = new QTextEdit(this);
     setCentralWidget(te);
 
     QMenuBar *mb = new QMenuBar(this);
@@ -68,6 +68,30 @@ QtEditor::QtEditor(QWidget *parent)
 //format menu
     QMenu *formatMenu = mb->addMenu("For&mat");
 
+    QAction *fontAction = makeAction("font.png", "&Font", "Ctrl+Shift+F", "Choose Font", this, SLOT(selectFont()));
+    QAction *colorAction = makeAction("color.png", "&Color", "", "Set Text Color", this, SLOT(selectColor()));
+
+    formatMenu->addAction(fontAction);
+    formatMenu->addAction(colorAction);
+
+    //add Align Sub Menu
+    QMenu *alignMenu = formatMenu->addMenu("&Align");
+
+    // QAction *alignLeftAct = makeAction("align_left.png", "&Left", "Ctrl+L", "Align Left", [=] {
+    //     te->setAlignment(Qt::AlignLeft);
+    // });
+
+    //alignText slot은 현재 이 클래스에 있으므로 te가 아닌 this임
+    QAction *alignLeftAct = makeAction("align_left.png", "&Left", "Ctrl+L", "Align Left", this, SLOT(alignText()));
+    QAction *alignCenterAct = makeAction("align_center.png", "&Center", "Ctrl+E", "Align Center", this, SLOT(alignText()));
+    QAction *alignRightAct = makeAction("align_right.png", "&Right", "Ctrl+R", "Align Right", this, SLOT(alignText()));
+    QAction *alignJustifyAct = makeAction("align_justify.png", "&Justify", "Ctrl+J", "Align Justify", this, SLOT(alignText()));
+
+    alignMenu->addAction(alignLeftAct);
+    alignMenu->addAction(alignCenterAct);
+    alignMenu->addAction(alignRightAct);
+    alignMenu->addAction(alignJustifyAct);
+
 //window menu
     QMenu *windowMenu = mb->addMenu("&Window");
 
@@ -115,15 +139,23 @@ QtEditor::QtEditor(QWidget *parent)
 
     QDoubleSpinBox *sizeSpinBox = new QDoubleSpinBox(this);
     connect(sizeSpinBox, SIGNAL(valueChanged(double)), te, SLOT(setFontPointSize(qreal)));
+    sizeSpinBox->setMinimumWidth(100);
 
     addToolBarBreak();  //다음 툴바는 아래 줄로
 
     //format tool bar
     QToolBar *formatTB = addToolBar("&Format");
     formatTB->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    formatTB->addAction(fontAction);
+    formatTB->addAction(colorAction);
     formatTB->addSeparator();
     formatTB->addWidget(fontComboBox);
     formatTB->addWidget(sizeSpinBox);
+    formatTB->addSeparator();
+    formatTB->addAction(alignLeftAct);
+    formatTB->addAction(alignCenterAct);
+    formatTB->addAction(alignRightAct);
+    formatTB->addAction(alignJustifyAct);
 
 //toolbar toggle을 위한 메뉴
     QMenu *toolbarMenu = windowMenu->addMenu("&Toolbar");
@@ -148,6 +180,21 @@ void QtEditor::newFile() {
 
 void QtEditor::openFile() {
     qDebug("Open File");
+}
+
+void QtEditor::alignText() {
+    QAction *action = qobject_cast<QAction*>(sender());
+
+    if (action->text().contains("Left", Qt::CaseInsensitive))
+        te->setAlignment(Qt::AlignLeft);
+    else if (action->text().contains("Center", Qt::CaseInsensitive))
+        te->setAlignment(Qt::AlignCenter);
+    else if (action->text().contains("Right", Qt::CaseInsensitive))
+        te->setAlignment(Qt::AlignRight);
+    else if (action->text().contains("Justify", Qt::CaseInsensitive))
+        te->setAlignment(Qt::AlignJustify);
+    else
+        ;//error;
 }
 
 template <typename T>

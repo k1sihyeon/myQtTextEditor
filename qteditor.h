@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+class QTextEdit;
+
 class QtEditor : public QMainWindow
 {
     Q_OBJECT
@@ -11,9 +13,12 @@ public:
     QtEditor(QWidget *parent = nullptr);
     ~QtEditor();
 
+    QTextEdit *te;
+
 public slots:
     void newFile();
     void openFile();
+    void alignText();
 
 private:
     template <typename T>
