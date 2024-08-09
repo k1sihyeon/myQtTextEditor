@@ -65,14 +65,14 @@ QtEditor::QtEditor(QWidget *parent)
     //QTextEdit::setAlignment(Qt::Alignment a);
 
 //edit menu
-    //QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), te, SLOT(undo()));
-    QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), [=] {
-        QMdiSubWindow *subWindow = mdiArea->currentSubWindow();
-        if (subWindow != nullptr) {
-            QTextEdit *tmpTE = dynamic_cast<QTextEdit*>(subWindow->widget());
-            tmpTE->undo();
-        }
-    });
+    QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), te, SLOT(undo()));
+    // QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), [=] {
+    //     QMdiSubWindow *subWindow = mdiArea->currentSubWindow();
+    //     if (subWindow != nullptr) {
+    //         QTextEdit *tmpTE = dynamic_cast<QTextEdit*>(subWindow->widget());
+    //         tmpTE->undo();
+    //     }
+    // });
     QAction *redoAct = makeAction("redo.png", tr("&Redo"), "Ctrl+Shift+Z", tr("Redo work"), te, SLOT(redo()));
     QAction *copyAct = makeAction("copy.png", tr("&Copy"), "Ctrl+C", tr("Copy text"), te, SLOT(copy()));
     QAction *cutAct = makeAction("cut.png", tr("&Cut"), "Ctrl+X", tr("Cut text"), te, SLOT(cut()));
@@ -91,6 +91,16 @@ QtEditor::QtEditor(QWidget *parent)
     editMenu->addSeparator();
     editMenu->addAction(zoominAct);
     editMenu->addAction(zoomoutAct);
+
+    // editActions pushback
+    editActions.push_back({undoAct, SLOT(undo())});
+    editActions.push_back({redoAct, SLOT(redo())});
+    editActions.push_back({copyAct, SLOT(copy())});
+    editActions.push_back({pasteAct, SLOT(paste())});
+    editActions.push_back({zoominAct, SLOT(zoomIn())});
+    editActions.push_back({zoomoutAct, SLOT(zoomOut())});
+
+    connect(mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), SLOT(connectWindow(QMdiSubWindow*)));
 
 
 //format menu
@@ -243,10 +253,25 @@ void QtEditor::alignText() {
         ;//error;
 }
 
-// void QtEditor::connectWindow(QMdiSubWindow* window) {
-//     if (window != nullptr)
-//         te = qobject_cast<QTextEdit*>(window->widget());
-// }
+void QtEditor::connectWindow(QMdiSubWindow* window) {
+    if (window == nullptr)
+        prevTE = nullptr;
+    else {
+        QTextEdit* te = qobject_cast<QTextEdit*>(window->widget());
+
+        if (prevTE != nullptr) {
+            for (std::pair<QAction*, const char *> a : editActions)
+                a.first->disconnect(prevTE);
+        }
+
+        prevTE = te;
+
+        for (std::pair<QAction*, const char *> a : editActions)
+            connect(a.first, SIGNAL(triggered()), te, a.second);
+    }
+
+    // current window가 변경 될 때마다 editaction 들을 모조리 disconnect하고 새로운 window(textedit)에 연결
+}
 
 template <typename T>
 QAction *QtEditor::makeAction(QString icon, QString text, T shortCut, QString toolTip, QObject* recv, const char* slot) {

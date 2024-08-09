@@ -17,12 +17,14 @@ public:
 
     //QTextEdit *te;
     QMdiArea *mdiArea;
+    QVector<std::pair<QAction*, const char *>> editActions;
+    QTextEdit *prevTE = nullptr;
 
 public slots:
     void openFile();
     void alignText();
     QTextEdit *newFile();
-    //void connectWindow(QMdiSubWindow* window);
+    void connectWindow(QMdiSubWindow* window);
 
 private:
     template <typename T>
