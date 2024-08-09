@@ -65,7 +65,14 @@ QtEditor::QtEditor(QWidget *parent)
     //QTextEdit::setAlignment(Qt::Alignment a);
 
 //edit menu
-    QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), te, SLOT(undo()));
+    //QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), te, SLOT(undo()));
+    QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), [=] {
+        QMdiSubWindow *subWindow = mdiArea->currentSubWindow();
+        if (subWindow != nullptr) {
+            QTextEdit *tmpTE = dynamic_cast<QTextEdit*>(subWindow->widget());
+            tmpTE->undo();
+        }
+    });
     QAction *redoAct = makeAction("redo.png", tr("&Redo"), "Ctrl+Shift+Z", tr("Redo work"), te, SLOT(redo()));
     QAction *copyAct = makeAction("copy.png", tr("&Copy"), "Ctrl+C", tr("Copy text"), te, SLOT(copy()));
     QAction *cutAct = makeAction("cut.png", tr("&Cut"), "Ctrl+X", tr("Cut text"), te, SLOT(cut()));
@@ -117,6 +124,10 @@ QtEditor::QtEditor(QWidget *parent)
 //window menu
     QMenu *windowMenu = mb->addMenu("&Window");
 
+    QAction *cascadeAct = makeAction("", "&Cascade", "", "Align Sub Windows by Cascade", mdiArea, SLOT(cascadeSubWindows()));
+
+    windowMenu->addAction(cascadeAct);
+
 //help menu
     QMenu *helpMenu = mb->addMenu("&Help");
 
@@ -152,6 +163,7 @@ QtEditor::QtEditor(QWidget *parent)
 //window tool bar
     QToolBar *windowTB = addToolBar("&Window");
     windowTB->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    windowTB->addAction(cascadeAct);
 
 //format tool bar
 
@@ -230,6 +242,11 @@ void QtEditor::alignText() {
     else
         ;//error;
 }
+
+// void QtEditor::connectWindow(QMdiSubWindow* window) {
+//     if (window != nullptr)
+//         te = qobject_cast<QTextEdit*>(window->widget());
+// }
 
 template <typename T>
 QAction *QtEditor::makeAction(QString icon, QString text, T shortCut, QString toolTip, QObject* recv, const char* slot) {

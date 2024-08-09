@@ -5,6 +5,7 @@
 
 class QTextEdit;
 class QMdiArea;
+class QMdiSubWindow;
 
 class QtEditor : public QMainWindow
 {
@@ -21,6 +22,7 @@ public slots:
     void openFile();
     void alignText();
     QTextEdit *newFile();
+    //void connectWindow(QMdiSubWindow* window);
 
 private:
     template <typename T>
