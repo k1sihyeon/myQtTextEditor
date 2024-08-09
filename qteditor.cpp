@@ -267,20 +267,91 @@ void QtEditor::openFile() {
     qDebug("Open File");
     QString filename = QFileDialog::getOpenFileName(this, tr("Select file to open"), QDir::home().dirName(), "Text File (*.txt *.html *.c *.cpp *.h)");
     qDebug() << filename;
+
+    if (filename.length() == 0)
+        return;
+
+    QFileInfo fileInfo(filename);
+    if (fileInfo.isReadable()) {
+        QFile file(filename);
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        QByteArray msg = file.readAll();
+        file.close();
+
+        QTextEdit* textedit = newFile();
+        textedit->setWindowTitle(filename);
+        windowHash.key(textedit)->setText(filename);
+
+        textedit->setHtml(msg);
+
+        // if (fileInfo.suffix() == "htm" || fileInfo.suffix() == "html")
+        //     textedit->setHtml(msg);
+        // else
+        //     textedit->setPlainText(msg);
+    }
+    else {
+        QMessageBox::warning(this, "Error", "Cannot Read this file", QMessageBox::Ok);
+    }
 }
 
 void QtEditor::saveFile() {
-    QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
-    qDebug() << filename;
+    //QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
+    qDebug() << "slot : save file";
 
     QTextEdit* te = (QTextEdit*)mdiArea->currentSubWindow()->widget();
-    if (te != nullptr)
-        windowHash.key(te)->setText(filename);
+    if (te != nullptr) {
+        QString filename = te->windowTitle();
+
+        if (filename.length() == 0) {
+            filename = QFileDialog::getSaveFileName(this, tr("Select file to save"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
+
+            te->setWindowTitle(filename);
+            windowHash.key(te)->setText(filename);
+        }
+
+        QFile file(filename);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
+
+        QFileInfo fileInfo(filename);
+        if (fileInfo.isWritable()) {
+            QByteArray msg = te->toHtml().toUtf8();
+            file.write(msg);
+        }
+        else
+            QMessageBox::warning(this, "Error", "Cannot Save this file", QMessageBox::Ok);
+
+        file.close();
+    }
 }
 
 void QtEditor::saveAsFile() {
-    QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save as"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
-    qDebug() << filename;
+    // QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save as"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
+    // qDebug() << filename;
+
+    qDebug() << "Save As a file";
+
+    QMdiSubWindow *subW = mdiArea->currentSubWindow();
+    if (subW != nullptr) {
+        QTextEdit *te = qobject_cast<QTextEdit*>(subW->widget());
+        QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save as"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
+
+        if (filename.length() == 0)
+            return;
+
+        te->setWindowTitle(filename);
+        QFile file(filename);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
+
+        QFileInfo fileInfo(filename);
+        if (fileInfo.isWritable()) {
+            QByteArray msg = te->toHtml().toUtf8();
+            file.write(msg);
+        }
+        else
+            QMessageBox::warning(this, "Error", "Cannot Save this file", QMessageBox::Ok);
+
+        file.close();
+    }
 }
 
 void QtEditor::print() {
