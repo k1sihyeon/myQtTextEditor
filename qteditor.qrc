@@ -25,5 +25,6 @@
         <file>icons/zoom_out.png</file>
         <file>icons/align.png</file>
         <file>icons/toolbar.png</file>
+        <file>icons/qt.png</file>
     </qresource>
 </RCC>

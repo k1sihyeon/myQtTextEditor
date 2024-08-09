@@ -22,9 +22,14 @@ public:
 
 public slots:
     void openFile();
+    void saveFile();
+    void saveAsFile();
     void alignText();
+    void selectColor();
+    void selectFont();
     QTextEdit *newFile();
     void connectWindow(QMdiSubWindow* window);
+    void about();
 
 private:
     template <typename T>

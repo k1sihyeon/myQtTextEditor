@@ -10,6 +10,12 @@
 #include <QDockWidget>
 #include <QMdiArea>
 #include <QMdiSubWindow>
+#include <QMessageBox>
+#include <QApplication>
+#include <QFileDialog>
+#include <QDebug>
+#include <QColorDialog>
+#include <QFontDialog>
 
 QtEditor::QtEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -17,6 +23,7 @@ QtEditor::QtEditor(QWidget *parent)
     //MDI Area
     mdiArea = new QMdiArea(this);
     setCentralWidget(mdiArea);
+    connect(mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), SLOT(connectWindow(QMdiSubWindow*)));
 
     // Text Edit - on MDI Area
     QTextEdit *te = newFile();
@@ -48,7 +55,7 @@ QtEditor::QtEditor(QWidget *parent)
     QAction *newAct = makeAction("new.png", tr("&New"), tr("Ctrl+N"), tr("Make New File"), this, SLOT(newFile()));
     QAction *openAct = makeAction("open.png", tr("&Open"), tr("Ctrl+O"), tr("Open File"), this, SLOT(openFile()));
     QAction *saveAct = makeAction("save.png", tr("&Save"), tr("Ctrl+S"), tr("Save File"), this, SLOT(saveFile()));
-    QAction *saveasAct = makeAction("saveas.png", tr("Save &As..."), "", tr("Save File As Another File Name"), this, SLOT(saveasFile()));
+    QAction *saveasAct = makeAction("saveas.png", tr("Save &As..."), "", tr("Save File As Another File Name"), this, SLOT(saveAsFile()));
     QAction *printAct = makeAction("print.png", tr("&Print"), "Ctrl+P", tr("Print File"), this, SLOT(printFile()));
     QAction *exitAct = makeAction("quit.png", tr("E&xit"), tr("Ctrl+Q"), tr("Exit Program"), this, SLOT(exit()));
 
@@ -77,8 +84,8 @@ QtEditor::QtEditor(QWidget *parent)
     QAction *copyAct = makeAction("copy.png", tr("&Copy"), "Ctrl+C", tr("Copy text"), te, SLOT(copy()));
     QAction *cutAct = makeAction("cut.png", tr("&Cut"), "Ctrl+X", tr("Cut text"), te, SLOT(cut()));
     QAction *pasteAct = makeAction("paste.png", tr("&Paste"), "Ctrl+V", tr("Paste work"), te, SLOT(paste()));
-    QAction *zoominAct = makeAction("zoom_in.png", tr("Zoom &In"), "Ctrl++", tr("Zoom In Screen"), te, SLOT(zoomIn()));
-    QAction *zoomoutAct = makeAction("zoom_out.png", tr("Zoom &Out"), "Ctrl+-", tr("Zoom Out Screen"), te, SLOT(zoomOut()));
+    QAction *zoominAct = makeAction("zoom_in.png", tr("Zoom &In"), QKeySequence::ZoomIn, tr("Zoom In Screen"), te, SLOT(zoomIn()));
+    QAction *zoomoutAct = makeAction("zoom_out.png", tr("Zoom &Out"), QKeySequence::ZoomOut, tr("Zoom Out Screen"), te, SLOT(zoomOut()));
 
     QMenu *editMenu = mb->addMenu("&Edit");
     editMenu->addAction(undoAct);
@@ -99,8 +106,6 @@ QtEditor::QtEditor(QWidget *parent)
     editActions.push_back({pasteAct, SLOT(paste())});
     editActions.push_back({zoominAct, SLOT(zoomIn())});
     editActions.push_back({zoomoutAct, SLOT(zoomOut())});
-
-    connect(mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), SLOT(connectWindow(QMdiSubWindow*)));
 
 
 //format menu
@@ -135,12 +140,19 @@ QtEditor::QtEditor(QWidget *parent)
     QMenu *windowMenu = mb->addMenu("&Window");
 
     QAction *cascadeAct = makeAction("", "&Cascade", "", "Align Sub Windows by Cascade", mdiArea, SLOT(cascadeSubWindows()));
+    QAction *tileAct = makeAction("", "&Tile", "", "Align Sub Windows by Tile", mdiArea, SLOT(tileSubWindows()));
 
     windowMenu->addAction(cascadeAct);
+    windowMenu->addAction(tileAct);
 
 //help menu
     QMenu *helpMenu = mb->addMenu("&Help");
 
+    QAction *aboutAct = makeAction("about.png", "&About", "", "Show About Message Box", this, SLOT(about()));
+    QAction *aboutQtAct = makeAction("qt.png", "About &Qt", "", "Show About Qt", qApp, SLOT(aboutQt()));
+
+    helpMenu->addAction(aboutAct);
+    helpMenu->addAction(aboutQtAct);
 
     /////////////////////////////////////
     /// \brief ToolBar
@@ -174,6 +186,7 @@ QtEditor::QtEditor(QWidget *parent)
     QToolBar *windowTB = addToolBar("&Window");
     windowTB->setToolButtonStyle(Qt::ToolButtonIconOnly);
     windowTB->addAction(cascadeAct);
+    windowTB->addAction(tileAct);
 
 //format tool bar
 
@@ -231,6 +244,33 @@ QTextEdit* QtEditor::newFile() {
 
 void QtEditor::openFile() {
     qDebug("Open File");
+    QString filename = QFileDialog::getOpenFileName(this, tr("Select file to open"), QDir::home().dirName(), "Text File (*.txt *.html *.c *.cpp *.h)");
+    qDebug() << filename;
+}
+
+void QtEditor::saveFile() {
+    QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
+    qDebug() << filename;
+}
+
+void QtEditor::saveAsFile() {
+    QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save as"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
+    qDebug() << filename;
+}
+
+void QtEditor::selectColor() {
+    QTextEdit* te = (QTextEdit*)mdiArea->currentSubWindow()->widget();
+    QColor color = QColorDialog::getColor(te->textColor(), this);
+    if (color.isValid())
+        te->setTextColor(color);
+}
+
+void QtEditor::selectFont() {
+    bool ok;
+    QTextEdit* te = (QTextEdit*)mdiArea->currentSubWindow()->widget();
+    QFont font = QFontDialog::getFont(&ok, te->currentFont(), this);
+    if (ok)
+        te->setCurrentFont(font);
 }
 
 void QtEditor::alignText() {
@@ -273,12 +313,18 @@ void QtEditor::connectWindow(QMdiSubWindow* window) {
     // current window가 변경 될 때마다 editaction 들을 모조리 disconnect하고 새로운 window(textedit)에 연결
 }
 
+void QtEditor::about() {
+    //QMessageBox::about(this, "myQtTextEditor", "this is Qt Text Editor");
+    QMessageBox::information(this, "Qt Text Editor Title", "Information Message", QMessageBox::Yes);
+}
+
 template <typename T>
 QAction *QtEditor::makeAction(QString icon, QString text, T shortCut, QString toolTip, QObject* recv, const char* slot) {
     QAction *act = new QAction(text, this);
     if (icon.length())
         act->setIcon(QIcon(":/icons/" + icon));
-    act->setShortcut(QString(shortCut));
+    QKeySequence keySeq(shortCut);
+    act->setShortcut(keySeq);
     act->setStatusTip(toolTip);
     connect(act, SIGNAL(triggered()), recv, slot);
     return act;
