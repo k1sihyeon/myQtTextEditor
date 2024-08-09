@@ -16,6 +16,8 @@
 #include <QDebug>
 #include <QColorDialog>
 #include <QFontDialog>
+#include <QPrinter>
+#include <QPrintDialog>
 
 QtEditor::QtEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -25,8 +27,7 @@ QtEditor::QtEditor(QWidget *parent)
     setCentralWidget(mdiArea);
     connect(mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), SLOT(connectWindow(QMdiSubWindow*)));
 
-    // Text Edit - on MDI Area
-    QTextEdit *te = newFile();
+
 
     //Dock Widget
     QWidget *w = new QWidget(this);
@@ -56,7 +57,7 @@ QtEditor::QtEditor(QWidget *parent)
     QAction *openAct = makeAction("open.png", tr("&Open"), tr("Ctrl+O"), tr("Open File"), this, SLOT(openFile()));
     QAction *saveAct = makeAction("save.png", tr("&Save"), tr("Ctrl+S"), tr("Save File"), this, SLOT(saveFile()));
     QAction *saveasAct = makeAction("saveas.png", tr("Save &As..."), "", tr("Save File As Another File Name"), this, SLOT(saveAsFile()));
-    QAction *printAct = makeAction("print.png", tr("&Print"), "Ctrl+P", tr("Print File"), this, SLOT(printFile()));
+    QAction *printAct = makeAction("print.png", tr("&Print"), "Ctrl+P", tr("Print File"), this, SLOT(print()));
     QAction *exitAct = makeAction("quit.png", tr("E&xit"), tr("Ctrl+Q"), tr("Exit Program"), this, SLOT(exit()));
 
     QMenu *fileMenu = mb->addMenu("&File");
@@ -72,7 +73,7 @@ QtEditor::QtEditor(QWidget *parent)
     //QTextEdit::setAlignment(Qt::Alignment a);
 
 //edit menu
-    QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), te, SLOT(undo()));
+    QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), NULL, SLOT(undo()));
     // QAction *undoAct = makeAction("undo.png", tr("&Undo"), "Ctrl+Z", tr("Undo work"), [=] {
     //     QMdiSubWindow *subWindow = mdiArea->currentSubWindow();
     //     if (subWindow != nullptr) {
@@ -80,12 +81,12 @@ QtEditor::QtEditor(QWidget *parent)
     //         tmpTE->undo();
     //     }
     // });
-    QAction *redoAct = makeAction("redo.png", tr("&Redo"), "Ctrl+Shift+Z", tr("Redo work"), te, SLOT(redo()));
-    QAction *copyAct = makeAction("copy.png", tr("&Copy"), "Ctrl+C", tr("Copy text"), te, SLOT(copy()));
-    QAction *cutAct = makeAction("cut.png", tr("&Cut"), "Ctrl+X", tr("Cut text"), te, SLOT(cut()));
-    QAction *pasteAct = makeAction("paste.png", tr("&Paste"), "Ctrl+V", tr("Paste work"), te, SLOT(paste()));
-    QAction *zoominAct = makeAction("zoom_in.png", tr("Zoom &In"), QKeySequence::ZoomIn, tr("Zoom In Screen"), te, SLOT(zoomIn()));
-    QAction *zoomoutAct = makeAction("zoom_out.png", tr("Zoom &Out"), QKeySequence::ZoomOut, tr("Zoom Out Screen"), te, SLOT(zoomOut()));
+    QAction *redoAct = makeAction("redo.png", tr("&Redo"), "Ctrl+Shift+Z", tr("Redo work"), NULL, SLOT(redo()));
+    QAction *copyAct = makeAction("copy.png", tr("&Copy"), "Ctrl+C", tr("Copy text"), NULL, SLOT(copy()));
+    QAction *cutAct = makeAction("cut.png", tr("&Cut"), "Ctrl+X", tr("Cut text"), NULL, SLOT(cut()));
+    QAction *pasteAct = makeAction("paste.png", tr("&Paste"), "Ctrl+V", tr("Paste work"), NULL, SLOT(paste()));
+    QAction *zoominAct = makeAction("zoom_in.png", tr("Zoom &In"), QKeySequence::ZoomIn, tr("Zoom In Screen"), NULL, SLOT(zoomIn()));
+    QAction *zoomoutAct = makeAction("zoom_out.png", tr("Zoom &Out"), QKeySequence::ZoomOut, tr("Zoom Out Screen"), NULL, SLOT(zoomOut()));
 
     QMenu *editMenu = mb->addMenu("&Edit");
     editMenu->addAction(undoAct);
@@ -114,6 +115,8 @@ QtEditor::QtEditor(QWidget *parent)
     QAction *fontAction = makeAction("font.png", "&Font", "Ctrl+Shift+F", "Choose Font", this, SLOT(selectFont()));
     QAction *colorAction = makeAction("color.png", "&Color", "", "Set Text Color", this, SLOT(selectColor()));
 
+    //action vector ....
+
     formatMenu->addAction(fontAction);
     formatMenu->addAction(colorAction);
 
@@ -137,13 +140,14 @@ QtEditor::QtEditor(QWidget *parent)
     alignMenu->addAction(alignJustifyAct);
 
 //window menu
-    QMenu *windowMenu = mb->addMenu("&Window");
+    windowMenu = mb->addMenu("&Window");
 
     QAction *cascadeAct = makeAction("", "&Cascade", "", "Align Sub Windows by Cascade", mdiArea, SLOT(cascadeSubWindows()));
     QAction *tileAct = makeAction("", "&Tile", "", "Align Sub Windows by Tile", mdiArea, SLOT(tileSubWindows()));
 
     windowMenu->addAction(cascadeAct);
     windowMenu->addAction(tileAct);
+    windowMenu->addSeparator();
 
 //help menu
     QMenu *helpMenu = mb->addMenu("&Help");
@@ -191,11 +195,11 @@ QtEditor::QtEditor(QWidget *parent)
 //format tool bar
 
     // Font combo box, fontsize spin box in format toolbar
-    QFontComboBox *fontComboBox = new QFontComboBox(this);
-    connect(fontComboBox, SIGNAL(currentFontChanged(QFont)), te, SLOT(setCurrentFont(QFont)));
+    fontComboBox = new QFontComboBox(this);
+    connect(fontComboBox, SIGNAL(currentFontChanged(QFont)), NULL, SLOT(setCurrentFont(QFont)));
 
-    QDoubleSpinBox *sizeSpinBox = new QDoubleSpinBox(this);
-    connect(sizeSpinBox, SIGNAL(valueChanged(double)), te, SLOT(setFontPointSize(qreal)));
+    sizeSpinBox = new QDoubleSpinBox(this);
+    connect(sizeSpinBox, SIGNAL(valueChanged(double)), NULL, SLOT(setFontPointSize(qreal)));
     sizeSpinBox->setMinimumWidth(100);
 
     addToolBarBreak();  //다음 툴바는 아래 줄로
@@ -222,6 +226,7 @@ QtEditor::QtEditor(QWidget *parent)
     toolbarMenu->addAction(formatTB->toggleViewAction());
     toolbarMenu->addAction(windowTB->toggleViewAction());
     toolbarMenu->addAction(dock->toggleViewAction());
+    windowMenu->addSeparator();
 
 
 // QStatusBar
@@ -231,13 +236,29 @@ QtEditor::QtEditor(QWidget *parent)
     statusbar->addPermanentWidget(statusLabel);
     statusbar->showMessage("started", 1500);
 
+    // Text Edit - on MDI Area
+    QTextEdit *te = newFile();
+
 }
 
 QTextEdit* QtEditor::newFile() {
     qDebug("Make New File");
+
+    QAction* newfileAct = makeAction("document.png", tr("&New File"), "", tr("New File"), this, SLOT(selectWindow()));
+    windowMenu->addAction(newfileAct);
+
     QTextEdit *textedit = new QTextEdit;
+
+    connect(textedit, SIGNAL(cursorPositionChanged()), SLOT(setFontWidget()));
+    connect(newfileAct, SIGNAL(triggered()), textedit, SLOT(setFocus()));
+
+    connect(textedit, SIGNAL(destroyed(QObject*)), textedit, SLOT(deleteLater()));
+    connect(textedit, SIGNAL(destroyed(QObject*)), newfileAct, SLOT(deleteLater()));
+
     mdiArea->addSubWindow(textedit);
     textedit->show();
+
+    windowHash[newfileAct] = textedit;
 
     return textedit;
 }
@@ -251,11 +272,26 @@ void QtEditor::openFile() {
 void QtEditor::saveFile() {
     QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
     qDebug() << filename;
+
+    QTextEdit* te = (QTextEdit*)mdiArea->currentSubWindow()->widget();
+    if (te != nullptr)
+        windowHash.key(te)->setText(filename);
 }
 
 void QtEditor::saveAsFile() {
     QString filename = QFileDialog::getSaveFileName(this, tr("Select file to save as"), ".", "Text File (*.txt *.html *.c *.cpp *.h)");
     qDebug() << filename;
+}
+
+void QtEditor::print() {
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setFullPage(true);
+    QPrintDialog printDialog(&printer, this);
+
+    if (printDialog.exec() == QDialog::Accepted) {
+        QTextEdit* te = (QTextEdit*)mdiArea->currentSubWindow()->widget();
+        te->print(&printer);
+    }
 }
 
 void QtEditor::selectColor() {
@@ -271,6 +307,11 @@ void QtEditor::selectFont() {
     QFont font = QFontDialog::getFont(&ok, te->currentFont(), this);
     if (ok)
         te->setCurrentFont(font);
+}
+
+void QtEditor::selectWindow() {
+    QTextEdit *textedit = (QTextEdit*)windowHash[(QAction*)sender()];
+    textedit->setFocus();
 }
 
 void QtEditor::alignText() {
@@ -300,14 +341,17 @@ void QtEditor::connectWindow(QMdiSubWindow* window) {
         QTextEdit* te = qobject_cast<QTextEdit*>(window->widget());
 
         if (prevTE != nullptr) {
-            for (std::pair<QAction*, const char *> a : editActions)
+            for (QPair<QAction*, const char *> a : editActions)
                 a.first->disconnect(prevTE);
         }
 
         prevTE = te;
 
-        for (std::pair<QAction*, const char *> a : editActions)
+        for (QPair<QAction*, const char *> a : editActions)
             connect(a.first, SIGNAL(triggered()), te, a.second);
+
+        connect(fontComboBox, SIGNAL(currentFontChanged(QFont)), te, SLOT(setCurrentFont(QFont)));
+        connect(sizeSpinBox, SIGNAL(valueChanged(double)), te, SLOT(setFontPointSize(qreal)));
     }
 
     // current window가 변경 될 때마다 editaction 들을 모조리 disconnect하고 새로운 window(textedit)에 연결

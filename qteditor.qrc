@@ -26,5 +26,6 @@
         <file>icons/align.png</file>
         <file>icons/toolbar.png</file>
         <file>icons/qt.png</file>
+        <file>icons/document.png</file>
     </qresource>
 </RCC>
